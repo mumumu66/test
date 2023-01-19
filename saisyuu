@@ -1,0 +1,147 @@
+import tkinter
+import tkinter.filedialog
+import cv2
+
+class Application(tkinter.Tk):
+    def __init__(self):
+        super().__init__()
+        
+        # キャンバスのサイズ
+        self.canvas_width = 400
+        self.canvas_height = 400
+
+        # アプリのウィンドウのサイズ設定
+        self.geometry("1000x430")
+
+        # １つ目のキャンバスの作成と配置
+        self.before_canvas = tkinter.Canvas(
+            self,
+            width=self.canvas_width,
+            height=self.canvas_height,
+            bg="gray"
+        )
+        self.before_canvas.grid(row=1, column=1)
+
+        # ２つ目のキャンバスの作成と配置
+        self.after_canvas = tkinter.Canvas(
+            self,
+            width=self.canvas_width,
+            height=self.canvas_height,
+            bg="gray"
+        )
+        self.after_canvas.grid(row=1, column=2)
+
+        # ボタンを配置するフレームの作成と配置
+        self.button_frame = tkinter.Frame()
+        self.button_frame.grid(row=1, column=3)
+
+        # ファイル読み込みボタンの作成と配置
+        self.load_button = tkinter.Button(
+            self.button_frame,
+            text="ファイル選択",
+            command=self.push_load_button
+        )
+        self.load_button.pack()
+
+        # 画像縮小ボタンの作成と配置
+        self.subsample_button = tkinter.Button(
+            self.button_frame,
+            text="グレー",
+            command=self.push_subsample_button
+        )
+        self.subsample_button.pack()
+
+        # 画像拡大ボタンの作成と配置
+        self.zoom_button = tkinter.Button(
+            self.button_frame,
+            text="拡大",
+            command=self.push_zoom_button
+        )
+        self.zoom_button.pack()
+
+        # 画像オブジェクトの設定（初期はNone）
+        self.before_image = None
+        self.after_image = None
+
+        # キャンバスに描画中の画像（初期はNone）
+        self.before_canvas_obj= None
+        self.after_canvas_obj = None
+
+    def push_load_button(self):
+        'ファイル選択ボタンが押された時の処理'
+
+        # ファイル選択画面を表示
+        file_path = tkinter.filedialog.askopenfilename(
+            initialdir="."
+        )
+
+        if len(file_path) != 0:
+
+            # Tkinter用画像オブジェクトの作成
+            self.before_image = tkinter.PhotoImage(file=file_path)
+
+            # 画像の描画位置を調節
+            x = int(self.canvas_width / 2)
+            y = int(self.canvas_height / 2)
+
+            # キャンバスに描画中の画像を削除
+            if self.before_canvas_obj is not None:
+                self.before_canvas.delete(self.before_canvas_obj)
+
+            # 画像を１つ目のキャンバスに描画
+            self.before_canvas_obj = self.before_canvas.create_image(
+                x, y,
+                image=self.before_image
+            )
+
+    def push_subsample_button(self):
+        '縮小ボタンが押された時の処理'
+
+        if self.before_image is not None:
+            # １つ目のキャンバスに描画している画像をコピー
+            tmp_image = self.before_image.copy()
+
+            # 画像をグレー化
+            imgcv = cv2.imread('./images/pien.png')
+            self.after_image = cv2.cvtColor(imgcv,cv2.COLOR_BGR2GRAY)
+            
+            # 画像の描画位置を調節
+            x = int(self.canvas_width / 2)
+            y = int(self.canvas_height / 2)
+
+            # キャンバスに描画中の画像を削除
+            if self.after_canvas_obj is not None:
+                self.after_canvas.delete(self.after_canvas_obj)
+
+            # 画像を描画
+            self.after_canvas_obj = self.after_canvas.create_image(
+                x, y,
+                image=self.after_image
+            )
+
+    def push_zoom_button(self):
+        '拡大ボタンが押された時の処理'
+
+        if self.before_image is not None:
+            # １つ目のキャンバスに描画している画像をコピー
+            tmp_image = self.before_image.copy()
+
+            #画像を拡大（2倍）
+            self.after_image = tmp_image.zoom(2)
+            
+            # 画像の描画位置を調節
+            x = int(self.canvas_width / 2)
+            y = int(self.canvas_height / 2)
+
+            # キャンバスに描画中の画像を削除
+            if self.after_canvas_obj is not None:
+                self.after_canvas.delete(self.after_canvas_obj)
+
+            # 画像を描画
+            self.after_canvas_obj = self.after_canvas.create_image(
+                x, y,
+                image=self.after_image
+            )
+    
+app = Application()
+app.mainloop()
